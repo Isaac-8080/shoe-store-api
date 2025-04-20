@@ -1,39 +1,23 @@
 const express = require('express');
+const { default: mongoose } = require('mongoose');
 
 const app = express();
 
 const PORT = 6030;
-
-const storeDb = [];
+const Router = require('./routes/shoe_route');
 
 app.use(express.json());
 
-app.post('/api/shoes', (req, res) => {
-  
-  const { category, brand, price, size } = req.body;
+app.use('/api/shoes', Router);
 
-  if (!category || !brand || !price || !size)
-    return res.status(400).json({ msg: `bad request, make sure feilds are not empty` })
+// app.use('/api/shoes', );
 
-  const newShoe = {
-    id : storeDb.length + 1,
-    category, 
-    brand, 
-    price, 
-    size
-  }
-
-  storeDb.push(newShoe);
-
-  return res.status(200).json({ msg: `shoe added!`, shoeDetail : storeDb });
-
-});
-
-app.get('/api/shoes', (req, res) => {
-
-  return res.status(200).json({ msg: storeDb.length > 0 ? `available shoes` : 'store is empty', shoeDetail : storeDb });
-
+mongoose.connect("mongodb+srv://isaacmanuopoku:Iwillworshipgod1234@devcluster.37fjkm0.mongodb.net/?retryWrites=true&w=majority&appName=DevCluster")
+.then(() => {
+  app.listen(PORT, () => {
+    console.log("connect to database");
+    console.log(`server is running on http://127.1.1.0${PORT}`)
+  })
 })
-
-app.listen(PORT, '127.0.0.1', () => {console.log(`server is running on http://127.1.1.0${PORT}`);
-})
+.catch((err) => console.log('can not connect to db', err)
+)
