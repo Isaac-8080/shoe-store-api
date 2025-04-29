@@ -2,17 +2,16 @@ const Shoe = require("../models/shoe_model");
 
 const createShoe = async (req, res) => {
   
-  const { category, brand, price, size } = req.body;
+  const { name, price, maleShoe } = req.body;
 
-  if (!category || !brand || !price || !size)
+  if (!name || !price || !maleShoe)
     return res.status(400).json({ msg: `bad request, all feilds are required` })
 
   const newShoe = Shoe({
     // id : storeDb.length + 1,
-    category, 
-    brand, 
+    name, 
     price, 
-    size
+    maleShoe,
   })
 
   await newShoe.save();
@@ -25,7 +24,7 @@ const getShoe = async (req, res) => {
 
   try {
 
-    const shoes = await Shoe.find();
+    const shoes = await Shoe.find().populate('maleShoe');
 
     if (!shoes) 
       return res.status(404).json({msg: "shoes not found"});
@@ -52,21 +51,45 @@ const getShoeByCategory = async (req, res) => {
     return res.status(201).json(shoes);
 }
 
-const updateShoe = async (req, res) => {
+// const updateShoe = async (req, res) => {
 
-  const { id } = req.params;
+//   const { id } = req.params;
 
-  const { category, brand, price, size } = req.body;
+//   const { category, brand, price, size } = req.body;
 
-  const newShoeDetails = await Shoe.findByIdAndUpdate(id, {
-    category, brand, price, size
-  })
+//   const newShoeDetails = await Shoe.findByIdAndUpdate(id, {
+//     category, brand, price, size
+//   })
 
-  if (!newShoeDetails)
-    return res.status(404).json({msg: "shoe not found"});
+//   if (!newShoeDetails)
+//     return res.status(404).json({msg: "shoe not found"});
   
-    return res.status(200).json({msg: `shoe updated`, newShoeDetails});
+//     return res.status(200).json({msg: `shoe updated`, newShoeDetails});
 
-}
+// }
 
-module.exports = { createShoe, getShoe, getShoeByCategory, updateShoe }
+const updateShoe = async (req, res) => {
+  try {
+    const updated = await Shoe.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+    if (!updated) return res.status(404).json({ message: 'Shoe not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+const deleteShoe = async (req, res) => {
+  try {
+    const deleted = await Shoe.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: 'Shoe not found' });
+    res.json({ message: 'Shoe successfully deleted.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}; 
+
+module.exports = { createShoe, getShoe, getShoeByCategory, updateShoe, deleteShoe }
